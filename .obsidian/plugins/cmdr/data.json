@@ -1,0 +1,67 @@
+{
+  "confirmDeletion": false,
+  "showAddCommand": false,
+  "debug": false,
+  "editorMenu": [],
+  "fileMenu": [],
+  "leftRibbon": [],
+  "rightRibbon": [],
+  "titleBar": [],
+  "statusBar": [],
+  "pageHeader": [
+    {
+      "id": "cmdr:macro-0",
+      "icon": "lucide-fullscreen",
+      "name": "focus",
+      "mode": "any"
+    }
+  ],
+  "macros": [
+    {
+      "macro": [
+        {
+          "action": 0,
+          "commandId": "app:toggle-ribbon"
+        },
+        {
+          "action": 1,
+          "delay": 100
+        },
+        {
+          "action": 0,
+          "commandId": "app:toggle-left-sidebar"
+        },
+        {
+          "action": 1,
+          "delay": 200
+        },
+        {
+          "action": 0,
+          "commandId": "app:toggle-right-sidebar"
+        }
+      ],
+      "name": "focus",
+      "icon": "lucide-fullscreen",
+      "startup": false
+    }
+  ],
+  "explorer": [],
+  "textToolbarCommands": [],
+  "hide": {
+    "statusbar": [
+      "backlink"
+    ],
+    "leftRibbon": []
+  },
+  "spacing": 8,
+  "advancedToolbar": {
+    "rowHeight": 48,
+    "rowCount": 1,
+    "spacing": 0,
+    "buttonWidth": 48,
+    "columnLayout": false,
+    "mappedIcons": [],
+    "tooltips": false,
+    "heightOffset": 0
+  }
+}

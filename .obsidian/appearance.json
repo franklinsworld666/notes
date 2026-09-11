@@ -1,0 +1,14 @@
+{
+  "cssTheme": "Minimal",
+  "interfaceFontFamily": "微软雅黑",
+  "textFontFamily": "微软雅黑",
+  "monospaceFontFamily": "Source Code Pro",
+  "theme": "moonstone",
+  "nativeMenus": false,
+  "showViewHeader": true,
+  "baseFontSizeAction": true,
+  "enabledCssSnippets": [],
+  "baseFontSize": 16,
+  "showRibbon": true,
+  "accentColor": ""
+}

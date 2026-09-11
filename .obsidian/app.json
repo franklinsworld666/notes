@@ -1,0 +1,19 @@
+{
+  "showLineNumber": false,
+  "spellcheck": false,
+  "attachmentFolderPath": "996-attachment",
+  "useMarkdownLinks": true,
+  "alwaysUpdateLinks": true,
+  "promptDelete": false,
+  "showUnsupportedFiles": true,
+  "newFileLocation": "current",
+  "trashOption": "system",
+  "strictLineBreaks": false,
+  "openBehavior": "",
+  "useTab": false,
+  "deleteUnlinkedAttachments": "ask",
+  "propertiesInDocument": "visible",
+  "userIgnoreFilters": [
+    "996-attachment/"
+  ]
+}

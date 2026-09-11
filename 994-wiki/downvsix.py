@@ -1,0 +1,245 @@
+#!/usr/bin/env python
+
+import click
+import requests
+import json
+import os
+
+
+class VSCodeExtensionDownloader:
+
+    def __init__(self, extension, proxy=None, version=None, destination=None, no_cache=False, print=False, target_platform=None):
+        self.extension = extension
+        self.proxy = proxy
+        self.version = version
+        self.destination = destination
+        self.no_cache = no_cache
+        self.print = print
+        self.target_platform = target_platform
+
+    def _print(self, msg):
+        if self.print:
+            print(msg)
+
+    def download(self):
+        ext = (self.extension or "").strip()
+        if "." not in ext:
+            self._print("Invalid extension identifier: {}. Use the form publisher.extension".format(ext))
+            return {
+                "ok": False,
+                "extension": ext,
+                "error": "invalid_extension",
+                "message": "Invalid extension identifier: {}. Use the form publisher.extension".format(ext)
+            }
+        publisher, extension_name = ext.split(".", 1)
+        if not publisher or not extension_name:
+            self._print("Invalid extension identifier: {}. Use the form publisher.extension".format(ext))
+            return {
+                "ok": False,
+                "extension": ext,
+                "error": "invalid_extension",
+                "message": "Invalid extension identifier: {}. Use the form publisher.extension".format(ext)
+            }
+        self._print("{}".format('=' * 50))
+        self._print("Downloading {}.{}".format(publisher, extension_name))
+        self._print("{}".format('=' * 50))
+        return self._download_vscode_extension(publisher, extension_name, self.proxy, self.version, self.destination, self.no_cache)
+
+    def _download_vscode_extension(self, publisher, extension_name, proxy, specific_version, destination, no_cache):
+            ext_id = "{}.{}".format(publisher, extension_name)
+            api_url = "https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery"
+    
+            payload = json.dumps({
+                "filters": [{
+                    "criteria": [
+                        {"filterType": 7, "value": ext_id}
+                    ]
+                }],
+                "flags": 914
+            })
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json;api-version=3.0-preview.1',
+                'User-Agent': 'Offline VSIX/1.0'
+            }
+
+            session = requests.Session()
+            
+            if proxy:
+                self._print("Using proxy: {}".format(proxy))
+                session.proxies = {"http": proxy, "https": proxy}
+
+            self._print("Querying Marketplace API...")
+            try:
+                response = session.post(api_url, headers=headers, data=payload, timeout=20)
+            except requests.RequestException as e:
+                self._print("Failed to query Marketplace API: {}".format(e))
+                return {
+                    "ok": False,
+                    "extension": ext_id,
+                    "error": "network",
+                    "message": str(e)
+                }
+
+            if response.status_code != 200:
+                self._print("Failed to query Marketplace API")
+                return {
+                    "ok": False,
+                    "extension": ext_id,
+                    "error": "http_error",
+                    "status_code": response.status_code,
+                    "message": "Failed to query Marketplace API"
+                }
+
+            try:
+                extension_data = response.json()
+            except ValueError:
+                self._print("Failed to parse Marketplace API response")
+                return {
+                    "ok": False,
+                    "extension": ext_id,
+                    "error": "invalid_json",
+                    "message": "Failed to parse Marketplace API response"
+                }
+
+            if specific_version:
+                version = specific_version
+            else:
+                try:
+                    results = extension_data.get("results") or []
+                    if not results:
+                        self._print("Extension not found: {}".format(ext_id))
+                        return {"ok": False, "extension": ext_id, "error": "not_found", "message": "Extension not found: {}".format(ext_id)}
+                    exts = results[0].get("extensions") or []
+                    if not exts:
+                        self._print("Extension not found: {}".format(ext_id))
+                        return {"ok": False, "extension": ext_id, "error": "not_found", "message": "Extension not found: {}".format(ext_id)}
+                    vers = exts[0].get("versions") or []
+                    if not vers:
+                        self._print("Extension not found: {}".format(ext_id))
+                        return {"ok": False, "extension": ext_id, "error": "not_found", "message": "Extension not found: {}".format(ext_id)}
+                    version = vers[0].get("version")
+                    if not version:
+                        self._print("Extension not found: {}".format(ext_id))
+                        return {"ok": False, "extension": ext_id, "error": "not_found", "message": "Extension not found: {}".format(ext_id)}
+                except (AttributeError, IndexError, TypeError):
+                    self._print("Extension not found: {}".format(ext_id))
+                    return {"ok": False, "extension": ext_id, "error": "not_found", "message": "Extension not found: {}".format(ext_id)}
+
+            if destination:
+                if not os.path.exists(destination):
+                    os.makedirs(destination)
+                file_path = os.path.join(destination, "{}.{}-{}.vsix".format(publisher,extension_name,version))
+            else:
+                if not os.path.exists("extensions"):
+                    os.makedirs("extensions")
+                file_path = os.path.join("extensions", "{}.{}-{}.vsix".format(publisher,extension_name,version))
+
+            if not no_cache and os.path.exists(file_path):
+                self._print("File {} already exists.".format(file_path))
+                self._print("Use --no-cache to force re-download.")
+                return {
+                    "ok": True,
+                    "extension": ext_id,
+                    "publisher": publisher,
+                    "name": extension_name,
+                    "version": version,
+                    "file_path": file_path,
+                    "cached": True
+                }
+
+            if self.target_platform:
+                download_url = (
+                    "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/"
+                    "{}/vsextensions/{}/{}/vspackage?targetPlatform={}".format(publisher,extension_name,version,self.target_platform)
+                )
+            else:
+                download_url = "https://{}.gallery.vsassets.io/_apis/public/gallery/publisher/{}/extension/{}/{}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage".format(publisher,publisher,extension_name,version)
+
+            self._print("Downloading version {}...".format(version))
+            self._print("Down url {}".format(download_url))
+            try:
+                download_response = session.get(download_url, timeout=60)
+            except requests.RequestException as e:
+                self._print("Failed to download asset: {}".format(e))
+                return {
+                    "ok": False,
+                    "extension": ext_id,
+                    "error": "network",
+                    "message": str(e)
+                }
+
+            if download_response.status_code == 200:
+                with open(file_path, "wb") as f:
+                    f.write(download_response.content)
+                self._print("{}".format('*'*50))
+                self._print("Successfully downloaded to: {}".format(file_path))
+                self._print("{}".format('*'*50))
+                return {
+                    "ok": True,
+                    "extension": ext_id,
+                    "publisher": publisher,
+                    "name": extension_name,
+                    "version": version,
+                    "file_path": file_path,
+                    "cached": False
+                }
+            else:
+                self._print("Failed to download {}.{}-{}.vsix".format(publisher, extension_name, version))
+                return {
+                    "ok": False,
+                    "extension": ext_id,
+                    "error": "download_failed",
+                    "status_code": download_response.status_code,
+                    "message": "Failed to download {}.{}-{}.vsix".format(publisher, extension_name, version)
+                }
+
+def download_plugins_from_file(file_path: str, proxy=None, version=None, destination=None, no_cache=False, verbose=False, target_platform=None):
+    results = []
+    if not os.path.exists(file_path):
+        print("File not found: {}".format(file_path))
+        return results
+    with open(file_path, 'r', encoding='utf-8') as f:
+        extensions = f.readlines()
+    for extension in extensions:
+        extension = extension.strip()
+        if extension:
+            downloader = VSCodeExtensionDownloader(extension, proxy, version, destination, no_cache, verbose, target_platform=target_platform)
+            res = downloader.download()
+            results.append(res)
+    return results
+
+@click.command()
+@click.argument('extension', nargs=1, required=False)
+@click.option('--version', default=None, help='Specific version to download.')
+@click.option('--destination', default=None, help='Destination folder.')
+@click.option('--no-cache', is_flag=True, default=False, help='Force re-download even if the extension already exists.')
+@click.option('--no-print', is_flag=True, default=True, help='Without output print')
+@click.option('--file', default=None, help='Path to a text file with extensions to download, one per line.')
+@click.option('--proxy', default=None, help='Proxy URL.')
+@click.option('--json', 'as_json', is_flag=True, default=False, help='Output result as JSON.')
+@click.option('--target-platform', default=None, help='VS Code target platform (e.g. win32-x64, linux-x64, darwin-arm64).')
+def cli(extension, file, proxy, version, destination, no_cache, no_print, as_json, target_platform):
+    if file:
+        results = download_plugins_from_file(file, proxy, version, destination, no_cache, False if as_json else no_print, target_platform=target_platform)
+        if as_json:
+            print(json.dumps({"results": results}, ensure_ascii=False))
+    elif extension:
+        downloader = VSCodeExtensionDownloader(extension, proxy, version, destination, no_cache, False if as_json else no_print, target_platform=target_platform)
+        res = downloader.download()
+        if as_json:
+            print(json.dumps(res, ensure_ascii=False))
+    else:
+        msg = "Please provide either an extension or a file containing extensions."
+        if as_json:
+            print(json.dumps({"ok": False, "error": "invalid_invocation", "message": msg}, ensure_ascii=False))
+        else:
+            print(msg)
+
+
+
+# python downvsix.py ms-vscode.cpptools --version 1.29.0 --target-platform win32-x64
+if __name__ == '__main__':
+    cli()
+
