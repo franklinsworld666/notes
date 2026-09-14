@@ -51,7 +51,6 @@
 |   1 | Entity Manager         | `entity-manager`                     | 根据 JSON Probe/配置动态发现并创建平台实体及 D-Bus 对象 | **中级→高级** |     |
 |   2 | FRU Device             | `phosphor-fru-device`                | 从 FRU EEPROM 读取资产数据并转换为 D-Bus 信息      | **中级**    |     |
 |   3 | IPMI FRU               | `phosphor-ipmi-fru`                  | 实现 FRU 数据解析、构造和访问                     | **中级→高级** | 完成  |
-|   4 | Ipmitool               | `ipmitool`                           | Ipmi 命令工具                             | **初级**    |     |
 |   5 | Inventory Manager      | `phosphor-inventory-manager`         | 管理硬件 Inventory 对象及生命周期                | **中级**    |     |
 |   6 | SMBIOS                 | `smbios-mdr`                         | 获取 Host SMBIOS 并提供平台信息                | **中级→高级** |     |
 |   7 | Inventory Associations | `D-Bus associations / platform code` | 建立实体、传感器、错误和 FRU 的关联                  | **高级**    |     |
@@ -139,6 +138,7 @@
 |  10 | IPMI Sensor   | `phosphor-host-ipmid`                    | 把 D-Bus Sensor 转换成 IPMI Sensor | **中级→高级** |     |
 |  11 | IPMI SEL      | `phosphor-sel-logger`                    | 提供 IPMI System Event Log       | **中级**    |     |
 |  12 | IPMI OEM      | `phosphor-host-ipmid plugins / platform` | 实现厂商自定义 IPMI command           | **高级**    |     |
+|  13 | ipmitool      | `ipmitool`                               | 实现 ipmitool 工具                 | **中级**    |     |
 ## 十一、Redfish / Web
 
 | # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |

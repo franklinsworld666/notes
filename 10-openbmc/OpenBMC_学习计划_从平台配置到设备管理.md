@@ -56,13 +56,17 @@ Redfish / IPMI / SNMP / Web UI
 
 ### 第 1 周：把已有成果画成系统图
 
-- 选一个你已经完成的功能（建议 FRU ），从启动服务开始追到 Redfish/SNMP 响应。
-- 在目标机上记录：相关 systemd service、D-Bus service/object/interface/property、日志关键字、对外 API。
+- 选一个你已经完成的功能，从启动服务开始追到 Redfish/SNMP 响应。
 - 阅读：OpenBMC [接口概览](https://github.com/openbmc/docs/blob/master/architecture/interface-overview.md)、[Object Mapper 架构](https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md)、`phosphor-dbus-interfaces` 中你用到的 YAML。
 - C++：复习 RAII、`std::variant`、智能指针、lambda、`std::optional`、异常边界；用一个小练习把 D-Bus variant 安全地转换为结构化输出。
 - Python：复习 `argparse`、`subprocess`、JSON、异常处理；写一个只读诊断脚本，输出指定 D-Bus object 的接口与属性快照。
 
-**验收：** 能在 10 分钟内说明“某个 Redfish 属性从哪个 D-Bus property 来、哪个服务维护、硬件值如何进来”。
+**验收：** 
++ 能在 10 分钟内说明“某个 Redfish 属性从哪个 D-Bus property 来、哪个服务维护、硬件值如何进来”，以 smbios 为例
++ 完成 systemd/ systemctl/journalctl 笔记
++ 了解 sdbusplus 主要接口使用方法
++ 学习 cpp : lambda 智能指针
+
 
 ### 第 2 周：systemd、日志和可重复调试
 

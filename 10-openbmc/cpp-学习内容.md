@@ -10,6 +10,7 @@
 | 8   | std::visit                  | 能看懂 visit+lambda                           | 属性类型分发                          | cppreference visit              |
 | 9   | std::optional               | 能读懂 optional 判断和取值                         | 可选配置、传感器属性                      | cppreference optional           |
 | 10  | 引用与移动语义                     | 理解左值、右值、move                               | 高性能对象传递                         | Effective Modern C++ Item 23-25 |
+| 11  | Sdbus                       | Sdbusplus 使用方法                             |                                 |                                 |
 | 11  | Boost.Asio基础                | 理解 io_context、timer、event loop             | OpenBMC异步框架核心                   | Boost.Asio Tutorial             |
 | 12  | std::function               | 理解函数对象封装                                   | 回调注册                            | cppreference function           |
 | 13  | constexpr                   | 能看懂编译期常量                                   | 配置表、路径定义                        | cppreference constexpr          |
