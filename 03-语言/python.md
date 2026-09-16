@@ -1,6 +1,6 @@
 ---
 title: python 入门
-tags: python
+tags:
 ---
 ## 变量
 

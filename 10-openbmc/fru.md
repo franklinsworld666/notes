@@ -16,11 +16,11 @@
 
 ## 1.3 整体布局
 
-![FRU整体布局](fru-笔记-20260914084445824.png)
+![FRU整体布局](fru-20260914125344646.png)
 
 ## 1.4 Common Header
 
-![Common Header结构](fru-笔记-20260914084445825.png)
+![Common Header结构](fru-20260914125344646-1.png)
 
 **checksum 计算** : 
 ```python
@@ -34,13 +34,13 @@ sum( data[0:9]) & 0xFF = 0
 
 ## 1.6 Chassis Area 内部结构
 
-![Chassis Area内部结构](fru-笔记-20260914084445825-1.png)
+![Chassis Area内部结构](fru-20260914125344646-2.png)
 
 
 **Type/Length Byte** 是 FRU 格式的精髓，1 字节同时表示类型和长度：
 
 
-![Type/Length Byte说明](fru-笔记-20260914084445826.png)
+![Type/Length Byte说明](fru-20260914125344647.png)
 
 例如 0xC8 = 11 001000 → 8-bit ASCII，长度 8。
 
@@ -48,7 +48,7 @@ sum( data[0:9]) & 0xFF = 0
 
 ## 1.7 Board Area 内部结构
 
-![Board Area内部结构](fru-笔记-20260914084445826-1.png)
+![Board Area内部结构](fru-20260914125344647-1.png)
 
 - date ：
 - Manufacture
@@ -60,7 +60,7 @@ sum( data[0:9]) & 0xFF = 0
 
 ## 1.8 Product Info Area 内部结构
 
-![Product Info Area内部结构](fru-笔记-20260914084445827.png)
+![Product Info Area内部结构](fru-20260914125344647-2.png)
 
 Product Info Area 包含：
 
@@ -79,7 +79,7 @@ Product Info Area 包含：
 
 每条 record 有：
 
-![Record结构](fru-笔记-20260914084445827-1.png)
+![Record结构](fru-20260914125344648.png)
 
 record checksum: record 数据部分checksum；
 
@@ -89,7 +89,7 @@ Record Type ID 范围：
 
 - 0x00 ~ 0xBF：标准化
 
-![Record Type ID范围](fru-笔记-20260914084445827-2.png)
+![Record Type ID范围](fru-20260914125344648-1.png)
 
 - 0xC0 ~ 0xFF：OEM 自定义，从0xC0 开始
 
@@ -111,7 +111,7 @@ ipmitool fru read 0 fru.bin
 # 修改某些字段
 ```
 
-![修改字段示例](fru-笔记-20260914084445828.png)
+![修改字段示例](fru-20260914125344649.png)
 
 
 ## Eeprom 设备 
@@ -124,7 +124,30 @@ echo addr > /sys/bus/i2c/devices/i2c-bus/delete_device
 ```
 
 
-# 3. ipmi 如何获取到FRU
+# 3. Fru 分层协议
+
+#信息来源 ：EEPROM / FRU
+
++ 信息类型：厂商、产品名、序列号、料号、版本、制造信息、资产标签。
++ 物理链路
+    + 主板、背板、风扇、PSU 等 EEPROM。
+	+ I²C/SMBus 走线。
++ 传输/会话层
+	+ 通常没有独立传输层。驱动：24 CXX
+	+ Linux I²C Core 和 EEPROM 驱动按设备地址读取。
++ 应用层协议/数据格式
+	+ IPMI FRU Information Storage。
+	+ 厂商自定义 EEPROM 格式。
++ 常见 OpenBMC 服务
+	+  `fru-device`：扫描和解析 FRU EEPROM。
+	+ ipmi-fru 读取 fru，并通知 inventory manager
+	+ inventory manager 维护最终 Inventory。
++ 典型 D-Bus
+	+  `/xyz/openbmc_project/inventory/...`
++ 调试路径
+	+ I²C 可达 → EEPROM 可读 → FRU 解析 → Inventory 对象 → Redfish 映射。
+		
+# 4.  ipmi 如何获取到FRU
 
 ipmitool 并不直接读 I2C，它走的是 **IPMI Storage 命令（NetFn=0x0A）**，3 条核心命令：（从dbus读取的）
 

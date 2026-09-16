@@ -195,7 +195,7 @@ PEM 格式：这是最常见的证书格式之一，使用 Base64 编码表示�
 
 DER 格式：这是一种二进制格式，常用于机器之间的数据交换。DER 格式的证书通常以 .der 或 .cer 扩展名结尾。
 
-PKCS#12/PFX（Public Key Cryptography Standards #12）格式：这是一种包含证书、私钥和其他相关信息的二进制格式。PKCS#12 文件通常以 .pfx 或 .p12 扩展名结尾。
+PKCS#12/PFX（Public Key Cryptography Standards ）格式：这是一种包含证书、私钥和其他相关信息的二进制格式。PKCS#12 文件通常以 .pfx 或 .p12 扩展名结尾。
 
 在进行证书操作时，你可能需要将证书从一种格式转换为另一种格式，以适应不同的环境和要求。
 

@@ -12,21 +12,21 @@
 |---:|---|---|---|---|
 ## 一、基础设施与构建系统
 
-| # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |
-|---:|---|---|---|---|
-| 1 | OpenBMC Distribution | `openbmc` | 通过 Yocto/OpenEmbedded 组合 layer、recipe 和软件组件生成 BMC 固件 | **中级** |
-| 2 | Yocto/OpenEmbedded | `openembedded-core / BitBake` | 负责交叉编译、依赖管理、rootfs 和镜像生成 | **高级** |
-| 3 | meta-phosphor | `meta-phosphor` | 提供跨平台通用 OpenBMC recipe、systemd 集成和 feature | **中级** |
-| 4 | SoC Layer | `meta-aspeed / meta-nuvoton / 其他 SoC layer` | 提供 BMC SoC 的 Kernel、U-Boot、驱动和硬件配置 | **高级** |
-| 5 | Board Layer | `meta-<vendor> / meta-<board>` | 提供具体服务器平台的设备树、配置、服务和平台策略 | **高级** |
-| 6 | systemd Integration | `obmc-phosphor-systemd.bbclass` | 把 recipe 与 systemd service、target、socket 等启动机制连接起来 | **中级** |
-| 7 | systemd | `Linux systemd` | 负责服务生命周期、启动依赖、target、timer 和日志 | **中级→高级** |
-| 8 | D-Bus | `Linux dbus` | 提供 OpenBMC 核心进程间通信机制 | **中级** |
-| 9 | sdbusplus | `sdbusplus` | 为 C++ 程序提供 D-Bus 方法、属性、信号等封装 | **中级** |
-| 10 | sdeventplus | `sdeventplus` | 将事件循环与 C++ 异步程序结合 | **中级→高级** |
-| 11 | D-Bus Interfaces | `phosphor-dbus-interfaces` | 定义跨服务共享的标准 D-Bus API | **中级** |
-| 12 | Object Mapper | `phosphor-objmgr` | 提供 D-Bus service/object/interface 的发现与映射 | **中级** |
-| 13 | D-Bus Monitor | `phosphor-dbus-monitor` | 根据 D-Bus 对象和属性变化触发动作 | **中级** |
+|   # | 功能模块                 | 主要源码模块/项目                                   | 功能一句话简介                                              | 能力等级      | 状态  |
+| --: | -------------------- | ------------------------------------------- | ---------------------------------------------------- | --------- | --- |
+|   1 | OpenBMC Distribution | `openbmc`                                   | 通过 Yocto/OpenEmbedded 组合 layer、recipe 和软件组件生成 BMC 固件 | **中级**    |     |
+|   2 | Yocto/OpenEmbedded   | `openembedded-core / BitBake`               | 负责交叉编译、依赖管理、rootfs 和镜像生成                             | **高级**    |     |
+|   3 | meta-phosphor        | `meta-phosphor`                             | 提供跨平台通用 OpenBMC recipe、systemd 集成和 feature           | **中级**    |     |
+|   4 | SoC Layer            | `meta-aspeed / meta-nuvoton / 其他 SoC layer` | 提供 BMC SoC 的 Kernel、U-Boot、驱动和硬件配置                   | **高级**    |     |
+|   5 | Board Layer          | `meta-<vendor> / meta-<board>`              | 提供具体服务器平台的设备树、配置、服务和平台策略                             | **高级**    |     |
+|   6 | systemd Integration  | `obmc-phosphor-systemd.bbclass`             | 把 recipe 与 systemd service、target、socket 等启动机制连接起来   | **中级→高级** |     |
+|   7 | systemd              | `Linux systemd`                             | 负责服务生命周期、启动依赖、target、timer 和日志                       | **初级**    | 完成  |
+|   8 | D-Bus                | `Linux dbus`                                | 提供 OpenBMC 核心进程间通信机制                                 | **中级**    |     |
+|   9 | sdbusplus            | `sdbusplus`                                 | 为 C++ 程序提供 D-Bus 方法、属性、信号等封装                         | **中级**    |     |
+|  10 | sdeventplus          | `sdeventplus`                               | 将事件循环与 C++ 异步程序结合                                    | **中级→高级** |     |
+|  11 | D-Bus Interfaces     | `phosphor-dbus-interfaces`                  | 定义跨服务共享的标准 D-Bus API                                 | **中级**    |     |
+|  12 | Object Mapper        | `phosphor-objmgr`                           | 提供 D-Bus service/object/interface 的发现与映射             | **中级**    |     |
+|  13 | D-Bus Monitor        | `phosphor-dbus-monitor`                     | 根据 D-Bus 对象和属性变化触发动作                                 | **中级**    |     |
 ## 二、硬件访问与 Linux 基础设施
 
 |   # | 功能模块          | 主要源码模块/项目                          | 功能一句话简介                                       | 能力等级      |
@@ -56,14 +56,14 @@
 |   7 | Inventory Associations | `D-Bus associations / platform code` | 建立实体、传感器、错误和 FRU 的关联                  | **高级**    |     |
 ## 四、Sensor
 
-| # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |
-|---:|---|---|---|---|
-| 1 | dbus-sensors | `dbus-sensors` | 把多种硬件传感器统一转换为 D-Bus Sensor | **中级** |
-| 2 | phosphor-hwmon | `phosphor-hwmon` | 从 Linux hwmon/sysfs 获取传感器并发布 D-Bus | **中级** |
-| 3 | Virtual Sensor | `phosphor-virtual-sensor` | 根据多个基础传感器计算虚拟值 | **中级** |
-| 4 | Sensor Threshold | `dbus-sensors / D-Bus interfaces` | 管理 Warning/Critical 等阈值和状态 | **中级** |
-| 5 | Sensor Association | `D-Bus associations` | 建立 Sensor 与实体/FRU 的逻辑关系 | **中级→高级** |
-| 6 | Sensor Discovery | `dbus-sensors / Entity Manager` | 根据平台配置发现实际传感器 | **中级→高级** |
+|   # | 功能模块               | 主要源码模块/项目                         | 功能一句话简介                            | 能力等级      |
+| --: | ------------------ | --------------------------------- | ---------------------------------- | --------- |
+|   1 | dbus-sensors       | `dbus-sensors`                    | 把多种硬件传感器统一转换为 D-Bus Sensor         | **中级**    |
+|   2 | phosphor-hwmon     | `phosphor-hwmon`                  | 从 Linux hwmon/sysfs 获取传感器并发布 D-Bus | **中级**    |
+|   3 | Virtual Sensor     | `phosphor-virtual-sensor`         | 根据多个基础传感器计算虚拟值                     | **中级**    |
+|   4 | Sensor Threshold   | `dbus-sensors / D-Bus interfaces` | 管理 Warning/Critical 等阈值和状态         | **中级**    |
+|   5 | Sensor Association | `D-Bus associations`              | 建立 Sensor 与实体/FRU 的逻辑关系            | **中级→高级** |
+|   6 | Sensor Discovery   | `dbus-sensors / Entity Manager`   | 根据平台配置发现实际传感器                      | **中级→高级** |
 ## 五、Power / Host / Chassis
 
 |   # | 功能模块              | 主要源码模块/项目                                 | 功能一句话简介                             | 能力等级      |
@@ -96,15 +96,15 @@
 | 5 | Button | `phosphor-buttons` | 处理物理按键输入和系统动作 | **中级** |
 ## 八、Logging / SEL / Debug
 
-| # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |
-|---:|---|---|---|---|
-| 1 | Error Logging | `phosphor-logging` | 提供统一错误记录和错误元数据 | **中级** |
-| 2 | Event Log | `phosphor-logging` | 保存和管理系统运行事件 | **中级** |
-| 3 | IPMI SEL | `phosphor-sel-logger` | 将系统事件与 IPMI SEL 模型结合 | **中级→高级** |
-| 4 | Journal | `systemd-journald` | 保存服务和系统日志 | **中级** |
-| 5 | Remote Logging | `rsyslog / phosphor-rsyslog-config` | 把 BMC 日志转发到远端服务器 | **中级** |
-| 6 | Debug Collector | `phosphor-debug-collector` | 收集日志、配置和状态用于故障诊断 | **中级→高级** |
-| 7 | Crash Dump | `platform-specific / kernel` | 收集 Kernel 或 Host 异常后的诊断信息 | **高级** |
+|   # | 功能模块            | 主要源码模块/项目                           | 功能一句话简介                   | 能力等级      | 状态  |
+| --: | --------------- | ----------------------------------- | ------------------------- | --------- | --- |
+|   1 | Error Logging   | `phosphor-logging`                  | 提供统一错误记录和错误元数据            | **中级**    |     |
+|   2 | Event Log       | `phosphor-logging`                  | 保存和管理系统运行事件               | **中级**    |     |
+|   3 | IPMI SEL        | `phosphor-sel-logger`               | 将系统事件与 IPMI SEL 模型结合      | **中级→高级** |     |
+|   4 | Journal         | `systemd-journald`                  | 保存服务和系统日志                 | **中级**    | 完成  |
+|   5 | Remote Logging  | `rsyslog / phosphor-rsyslog-config` | 把 BMC 日志转发到远端服务器          | **中级**    |     |
+|   6 | Debug Collector | `phosphor-debug-collector`          | 收集日志、配置和状态用于故障诊断          | **中级→高级** |     |
+|   7 | Crash Dump      | `platform-specific / kernel`        | 收集 Kernel 或 Host 异常后的诊断信息 | **高级**    |     |
 ## 九、Network / Time / SNMP / LDAP
 
 | # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |
@@ -155,25 +155,25 @@
 | 10 | Virtual Media Web Integration | `bmcweb / USB-IP` | 通过网络管理 Host 虚拟介质 | **高级** |
 ## 十二、Console / KVM / Virtual Media
 
-|   # | 功能模块          | 主要源码模块/项目                    | 功能一句话简介                                      | 能力等级   |
-| --: | ------------- | ---------------------------- | -------------------------------------------- | ------ |
-|   1 | Host Console  | `obmc-console`               | 把 Host UART console 抽象成 BMC 可访问的 Unix socket | **中级** |
-|   2 | SOL           | `obmc-console + IPMI`        | 把 Host Serial Console 通过网络提供给远程用户            | **高级** |
-|   3 | SSH Console   | `obmc-console`               | 通过 SSH 连接 BMC Console                        | **中级** |
-|   4 | KVM           | `obmc-ikvm`                  | 把 Host framebuffer/input 转换成远程 KVM           | **高级** |
-|   5 | Virtual Media | `bmcweb / USB-IP / platform` | 把远程 ISO/媒体映射成 Host 虚拟 USB                    | **高级** |
-|   6 | USB Gadget    | `Linux USB Gadget`           | 为 Virtual Media 等功能提供 USB device 能力          | **高级** |
+|   # | 功能模块          | 主要源码模块/项目                    | 功能一句话简介                                      | 能力等级   | 状态  |
+| --: | ------------- | ---------------------------- | -------------------------------------------- | ------ | --- |
+|   1 | Host Console  | `obmc-console`               | 把 Host UART console 抽象成 BMC 可访问的 Unix socket | **中级** |     |
+|   2 | SOL           | `obmc-console + IPMI`        | 把 Host Serial Console 通过网络提供给远程用户            | **高级** |     |
+|   3 | SSH Console   | `obmc-console`               | 通过 SSH 连接 BMC Console                        | **中级** |     |
+|   4 | KVM           | `obmc-ikvm`                  | 把 Host framebuffer/input 转换成远程 KVM           | **高级** |     |
+|   5 | Virtual Media | `bmcweb / USB-IP / platform` | 把远程 ISO/媒体映射成 Host 虚拟 USB                    | **高级** |     |
+|   6 | USB Gadget    | `Linux USB Gadget`           | 为 Virtual Media 等功能提供 USB device 能力          | **高级** |     |
 ## 十三、Software / Firmware Update
 
-|   # | 功能模块                   | 主要源码模块/项目                         | 功能一句话简介                    | 能力等级      |
-| --: | ---------------------- | --------------------------------- | -------------------------- | --------- |
-|   1 | Software Manager       | `phosphor-bmc-code-mgmt`          | 管理 BMC 软件版本和软件对象           | **中级→高级** |
-|   2 | Firmware Upload        | `phosphor-bmc-code-mgmt / bmcweb` | 接收并验证 BMC firmware image   | **高级**    |
-|   3 | Firmware Activation    | `phosphor-bmc-code-mgmt`          | 控制新 firmware 激活            | **高级**    |
-|   4 | Firmware Rollback      | `platform-specific`               | 升级失败时恢复可工作的 firmware       | **高级**    |
-|   5 | Host Firmware Update   | `platform-specific / Redfish`     | 管理 BIOS/Host firmware 更新   | **高级**    |
-|   6 | Flash Management       | `platform code / MTD`             | 管理 Flash 分区、读写和镜像布局        | **高级**    |
-|   7 | Secure Firmware Update | `platform/security`               | 对 firmware 做签名验证、版本控制和安全激活 | **高级**    |
+|   # | 功能模块                   | 主要源码模块/项目                         | 功能一句话简介                    | 能力等级      | 状态  |
+| --: | ---------------------- | --------------------------------- | -------------------------- | --------- | --- |
+|   1 | Software Manager       | `phosphor-bmc-code-mgmt`          | 管理 BMC 软件版本和软件对象           | **中级→高级** |     |
+|   2 | Firmware Upload        | `phosphor-bmc-code-mgmt / bmcweb` | 接收并验证 BMC firmware image   | **高级**    |     |
+|   3 | Firmware Activation    | `phosphor-bmc-code-mgmt`          | 控制新 firmware 激活            | **高级**    |     |
+|   4 | Firmware Rollback      | `platform-specific`               | 升级失败时恢复可工作的 firmware       | **高级**    |     |
+|   5 | Host Firmware Update   | `platform-specific / Redfish`     | 管理 BIOS/Host firmware 更新   | **高级**    |     |
+|   6 | Flash Management       | `platform code / MTD`             | 管理 Flash 分区、读写和镜像布局        | **高级**    |     |
+|   7 | Secure Firmware Update | `platform/security`               | 对 firmware 做签名验证、版本控制和安全激活 | **高级**    |     |
 ## 十四、Watchdog / Health / Telemetry
 
 |   # | 功能模块                   | 主要源码模块/项目                         | 功能一句话简介                | 能力等级      |
