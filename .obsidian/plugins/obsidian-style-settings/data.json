@@ -9,5 +9,16 @@
   "minimal-style@@h2-color@@light": "#4F46E5",
   "minimal-style@@h3-color@@light": "#0891B2",
   "minimal-style@@h4-color@@light": "#0F766E",
-  "minimal-style@@ribbon-style": "ribbon-hidden"
+  "minimal-style@@ribbon-style": "ribbon-hidden",
+  "minimal-style@@code-background@@light": "#F6F8FA",
+  "minimal-style@@code-comment@@light": "#6E7781",
+  "minimal-style@@code-normal@@light": "#24292F",
+  "minimal-style@@code-keyword@@light": "#CF222E",
+  "minimal-style@@code-function@@light": "#8250DF",
+  "minimal-style@@code-tag@@light": "#116329",
+  "minimal-style@@code-punctuation@@light": "#57606A",
+  "minimal-style@@code-property@@light": "#24292F",
+  "minimal-style@@code-operator@@light": "#24292F",
+  "minimal-style@@code-string@@light": "#0A3069",
+  "minimal-style@@code-value@@light": "#0550AE"
 }

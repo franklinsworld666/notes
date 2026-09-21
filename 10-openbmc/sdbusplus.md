@@ -1,28 +1,7 @@
-# sdbusplus / OpenBMC 入门教程
+# sdbusplus 
 
-> 面向具备 C++11、Linux 基础，准备阅读或开发 OpenBMC 的工程师。  
 > 目标不是记住所有 API，而是建立一条可重复使用的工作路径：**看见一个 D-Bus 对象 → 用 `busctl` 理解它 → 用 sdbusplus 调用或实现它 → 回到 OpenBMC 源码定位实现。**
 
-## 目录
-
-1. [全景：先理解什么问题](sdbusplus.md#1-全景先理解什么问题)
-2. [D-Bus 的对象模型](sdbusplus.md#2-d-bus-的对象模型)
-3. [用 busctl 观察正在运行的系统](sdbusplus.md#3-用-busctl-观察正在运行的系统)
-4. [sdbusplus 的位置与核心对象](sdbusplus.md#4-sdbusplus-的位置与核心对象)
-5. [编写同步 Client：调用 Method](sdbusplus.md#5-编写同步-client调用-method)
-6. [参数、返回值与 D-Bus signature](sdbusplus.md#6-参数返回值与-d-bus-signature)
-7. [Property：Get、GetAll、Set](sdbusplus.md#7-propertygetgetallset)
-8. [异步调用与执行时序](sdbusplus.md#8-异步调用与执行时序)
-9. [多个异步调用的组合](sdbusplus.md#9-多个异步调用的组合)
-10. [Boost.Asio 与事件循环](sdbusplus.md#10-boostasio-与事件循环)
-11. [编写 D-Bus Server](sdbusplus.md#11-编写-d-bus-server)
-12. [Property、Method、Signal 的服务端实现](sdbusplus.md#12-propertymethodsignal-的服务端实现)
-13. [错误处理与排查路径](sdbusplus.md#13-错误处理与排查路径)
-14. [ObjectMapper 与动态服务发现](sdbusplus.md#14-objectmapper-与动态服务发现)
-15. [YAML 与 sdbusplus 代码生成](sdbusplus.md#15-yaml-与-sdbusplus-代码生成)
-16. [从 D-Bus 追踪回 OpenBMC 源码](sdbusplus.md#16-从-d-bus-追踪回-openbmc-源码)
-17. [信号、生命周期与并发安全](sdbusplus.md#17-信号生命周期与并发安全)
-18. [练习路线与速查表](sdbusplus.md#18-练习路线与速查表)
 
 ---
 
@@ -74,14 +53,14 @@ Signal:       PropertiesChanged
 
 这五者有不同职责：
 
-| 概念 | 作用 | 类比 |
-| --- | --- | --- |
-| Service | 谁拥有、提供能力 | 某个服务进程或服务器 |
-| Object path | 服务中的哪个对象 | 文件系统路径 / URL 路径 |
-| Interface | 对象提供哪一组契约 | C++ 接口或类的公开 API |
-| Property | 当前状态 | 成员变量的受控读写 |
-| Method | 让对象做一件事 | 成员函数 |
-| Signal | 状态或事件的通知 | 发布/订阅事件 |
+| 概念          | 作用        | 类比              |
+| ----------- | --------- | --------------- |
+| Service     | 谁拥有、提供能力  | 某个服务进程或服务器      |
+| Object path | 服务中的哪个对象  | 文件系统路径 / URL 路径 |
+| Interface   | 对象提供哪一组契约 | C++ 接口或类的公开 API |
+| Property    | 当前状态      | 成员变量的受控读写       |
+| Method      | 让对象做一件事   | 成员函数            |
+| Signal      | 状态或事件的通知  | 发布/订阅事件         |
 
 注意两点：
 
@@ -151,7 +130,6 @@ busctl monitor xyz.openbmc_project.Network
 busctl set-property SERVICE PATH INTERFACE PROPERTY s "value"
 ```
 
-> 实践建议：每写一个 sdbusplus 调用，先构造等价的 `busctl` 命令并跑通。若命令不通，C++ 代码也不会 magically 正确。
 
 ## 4. sdbusplus 的位置与核心对象
 
@@ -179,9 +157,9 @@ auto bus = std::make_shared<sdbusplus::asio::connection>(io);
 
 // 在运行时创建 D-Bus interface（学习和小型服务很方便）
 sdbusplus::asio::object_server objectServer(bus);
+
 ```
 
-OpenBMC 通常使用 **system bus**。生产服务不应默认认为 session bus 可用；D-Bus 权限策略和系统服务生命周期也以 system bus 为中心。
 
 ### Message 是什么
 
@@ -873,17 +851,17 @@ Object path：
 
 ### API 速查
 
-| 任务 | 关键词 / API |
-| --- | --- |
-| 查看系统对象 | `busctl list/tree/introspect/monitor` |
-| 同步 Client | `new_default()`、`new_method_call()`、`append()`、`call()`、`read()` |
-| 异步 Client | `sdbusplus::asio::connection`、`async_method_call()`、`io_context.run()` |
-| 单个属性 | `org.freedesktop.DBus.Properties.Get` |
-| 所有属性 | `org.freedesktop.DBus.Properties.GetAll` |
-| 写属性 | `org.freedesktop.DBus.Properties.Set` |
+| 任务        | 关键词 / API                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------ |
+| 查看系统对象    | `busctl list/tree/introspect/monitor`                                                      |
+| 同步 Client | `new_default()`、`new_method_call()`、`append()`、`call()`、`read()`                           |
+| 异步 Client | `sdbusplus::asio::connection`、`async_method_call()`、`io_context.run()`                     |
+| 单个属性      | `org.freedesktop.DBus.Properties.Get`                                                      |
+| 所有属性      | `org.freedesktop.DBus.Properties.GetAll`                                                   |
+| 写属性       | `org.freedesktop.DBus.Properties.Set`                                                      |
 | 动态 Server | `object_server`、`add_interface()`、`register_property()`、`register_method()`、`initialize()` |
-| 服务发现 | `xyz.openbmc_project.ObjectMapper`、`GetObject`、`GetSubTree` |
-| 稳定接口定义 | YAML、sdbusplus code generation |
+| 服务发现      | `xyz.openbmc_project.ObjectMapper`、`GetObject`、`GetSubTree`                                |
+| 稳定接口定义    | YAML、sdbusplus code generation                                                             |
 
 ## 结语：把每次 D-Bus 交互还原成四元组
 
