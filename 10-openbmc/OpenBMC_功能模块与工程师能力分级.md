@@ -22,28 +22,28 @@
 |   6 | systemd Integration  | `obmc-phosphor-systemd.bbclass`             | 把 recipe 与 systemd service、target、socket 等启动机制连接起来   | **中级→高级** |     |
 |   7 | systemd              | `Linux systemd`                             | 负责服务生命周期、启动依赖、target、timer 和日志                       | **初级**    | 完成  |
 |   8 | D-Bus                | `Linux dbus`                                | 提供 OpenBMC 核心进程间通信机制                                 | **中级**    |     |
-|   9 | sdbusplus            | `sdbusplus`                                 | 为 C++ 程序提供 D-Bus 方法、属性、信号等封装                         | **中级**    |     |
+|   9 | sdbusplus            | `sdbusplus`                                 | 为 C++ 程序提供 D-Bus 方法、属性、信号等封装                         | **中级**    | 完成  |
 |  10 | sdeventplus          | `sdeventplus`                               | 将事件循环与 C++ 异步程序结合                                    | **中级→高级** |     |
 |  11 | D-Bus Interfaces     | `phosphor-dbus-interfaces`                  | 定义跨服务共享的标准 D-Bus API                                 | **中级**    |     |
 |  12 | Object Mapper        | `phosphor-objmgr`                           | 提供 D-Bus service/object/interface 的发现与映射             | **中级**    |     |
 |  13 | D-Bus Monitor        | `phosphor-dbus-monitor`                     | 根据 D-Bus 对象和属性变化触发动作                                 | **中级**    |     |
 ## 二、硬件访问与 Linux 基础设施
 
-|   # | 功能模块          | 主要源码模块/项目                          | 功能一句话简介                                       | 能力等级      |
-| --: | ------------- | ---------------------------------- | --------------------------------------------- | --------- |
-|   1 | I2C           | `Linux I2C subsystem / i2c-tools`  | 提供 BMC 与 EEPROM、CPLD、Sensor、VRM 等器件通信         | **中级**    |
-|   2 | GPIO          | `Linux GPIO / libgpiod / gpioplus` | 提供 GPIO 输入、输出和边沿事件处理                          | **中级**    |
-|   3 | SPI           | `Linux SPI subsystem / spidev`     | 提供 BMC 与 SPI Flash、CPLD 等设备通信                 | **中级**    |
-|   4 | EEPROM        | `Linux EEPROM / platform code`     | 管理 FRU、配置等非易失数据                               | **中级**    |
-|   5 | HWMON         | `Linux hwmon`                      | 向 userspace 暴露温度、电压、电流、风扇等监控数据                | **中级**    |
-|   6 | PWM           | `Linux PWM`                        | 提供风扇等设备的 PWM 控制                               | **中级**    |
-|   7 | RTC           | `Linux RTC`                        | 提供硬件实时时钟访问                                    | **中级**    |
-|   8 | MTD           | `Linux MTD`                        | 管理 SPI-NOR/NAND 等 Flash                       | **高级**    |
-|   9 | UBI/UBIFS     | `Linux UBI/UBIFS`                  | 提供 NAND 坏块管理和 Flash 文件系统                      | **高级**    |
-|  10 | Linux Network | `Linux networking`                 | 提供 Ethernet、IPv4/IPv6、VLAN、route、socket 等底层能力 | **中级→高级** |
-|  11 | USB Gadget    | `Linux USB Gadget`                 | 让 BMC 以 USB device 方式向 Host 提供虚拟设备            | **高级**    |
-|  12 | PCIe          | `Linux PCI subsystem`              | 管理 PCIe 设备及资源                                 | **高级**    |
-|  13 | PECI          | `Linux PECI / libpeci`             | 提供 BMC 与 Intel CPU 的管理通信                      | **高级**    |
+|   # | 功能模块          | 主要源码模块/项目                          | 功能一句话简介                                       | 能力等级      | 状态  |
+| --: | ------------- | ---------------------------------- | --------------------------------------------- | --------- | --- |
+|   1 | I2C           | `Linux i2c-tools`                  | 提供 BMC 与 EEPROM、CPLD、Sensor、VRM 等器件通信         | **中级**    |     |
+|   2 | GPIO          | `Linux GPIO / libgpiod / gpioplus` | 提供 GPIO 输入、输出和边沿事件处理                          | **中级**    |     |
+|   3 | SPI           | `Linux SPI subsystem / spidev`     | 提供 BMC 与 SPI Flash、CPLD 等设备通信                 | **中级**    |     |
+|   4 | EEPROM        | `Linux EEPROM / platform code`     | 管理 FRU、配置等非易失数据                               | **中级**    | 完成  |
+|   5 | HWMON         | `Linux hwmon`                      | 向 userspace 暴露温度、电压、电流、风扇等监控数据                | **中级**    |     |
+|   6 | PWM           | `Linux PWM`                        | 提供风扇等设备的 PWM 控制                               | **中级**    |     |
+|   7 | RTC           | `Linux RTC`                        | 提供硬件实时时钟访问                                    | **中级**    |     |
+|   8 | MTD           | `Linux MTD`                        | 管理 SPI-NOR/NAND 等 Flash                       | **高级**    |     |
+|   9 | UBI/UBIFS     | `Linux UBI/UBIFS`                  | 提供 NAND 坏块管理和 Flash 文件系统                      | **高级**    |     |
+|  10 | Linux Network | `Linux networking`                 | 提供 Ethernet、IPv4/IPv6、VLAN、route、socket 等底层能力 | **中级→高级** |     |
+|  11 | USB Gadget    | `Linux USB Gadget`                 | 让 BMC 以 USB device 方式向 Host 提供虚拟设备            | **高级**    |     |
+|  12 | PCIe          | `Linux PCI subsystem`              | 管理 PCIe 设备及资源                                 | **高级**    |     |
+|  13 | PECI          | `Linux PECI / libpeci`             | 提供 BMC 与 Intel CPU 的管理通信                      | **高级**    |     |
 ## 三、Inventory / FRU / SMBIOS
 
 |   # | 功能模块                   | 主要源码模块/项目                            | 功能一句话简介                               | 能力等级      | 状态  |
@@ -52,7 +52,7 @@
 |   2 | FRU Device             | `phosphor-fru-device`                | 从 FRU EEPROM 读取资产数据并转换为 D-Bus 信息      | **中级**    |     |
 |   3 | IPMI FRU               | `phosphor-ipmi-fru`                  | 实现 FRU 数据解析、构造和访问                     | **中级→高级** | 完成  |
 |   5 | Inventory Manager      | `phosphor-inventory-manager`         | 管理硬件 Inventory 对象及生命周期                | **中级**    |     |
-|   6 | SMBIOS                 | `smbios-mdr`                         | 获取 Host SMBIOS 并提供平台信息                | **中级→高级** |     |
+|   6 | SMBIOS                 | `smbios-mdr`                         | 获取 Host SMBIOS 并提供平台信息                | **中级→高级** | 完成  |
 |   7 | Inventory Associations | `D-Bus associations / platform code` | 建立实体、传感器、错误和 FRU 的关联                  | **高级**    |     |
 ## 四、Sensor
 

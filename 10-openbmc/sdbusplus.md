@@ -2,7 +2,6 @@
 
 > 目标不是记住所有 API，而是建立一条可重复使用的工作路径：**看见一个 D-Bus 对象 → 用 `busctl` 理解它 → 用 sdbusplus 调用或实现它 → 回到 OpenBMC 源码定位实现。**
 
-
 ---
 
 ## 1. 全景：先理解什么问题
@@ -131,7 +130,7 @@ busctl set-property SERVICE PATH INTERFACE PROPERTY s "value"
 ```
 
 
-## 4. sdbusplus 的位置与核心对象
+## 4. sdbusplus 的核心对象
 
 ```text
 你的 C++ 应用
@@ -151,7 +150,7 @@ D-Bus broker / dbus-daemon
 // 适合简单同步客户端、底层 message 操作
 sdbusplus::bus::bus bus = sdbusplus::bus::new_default();
 
-// 适合 OpenBMC 服务：D-Bus 与定时器、socket 共用一个事件循环
+// 适合异步：D-Bus 与定时器、socket 共用一个事件循环
 boost::asio::io_context io;
 auto bus = std::make_shared<sdbusplus::asio::connection>(io);
 
@@ -229,69 +228,6 @@ reply.read()
 
 同步调用很直观，但不能滥用。若程序在单线程事件循环中处理 HTTP、定时器、传感器或大量总线请求，阻塞等待某个服务的回复会让整个循环停住。此时应该使用异步调用，见第 8 章。
 
-## 6. 参数、返回值与 D-Bus signature
-
-D-Bus 通过 signature 描述 message 的序列化类型。它相当于跨进程 API 的类型契约；`busctl introspect` 输出的 `in`、`out` 列就是可靠来源。
-
-常见基本类型：
-
-| Signature | 含义 | 常见 C++ 类型 |
-| --- | --- | --- |
-| `s` | string | `std::string` |
-| `b` | boolean | `bool` |
-| `i` / `u` | 32 位有符号 / 无符号整数 | `int32_t` / `uint32_t` |
-| `x` / `t` | 64 位有符号 / 无符号整数 | `int64_t` / `uint64_t` |
-| `d` | double | `double` |
-| `o` | object path | 通常读作 `sdbusplus::message::object_path` 或字符串（取决于接口定义） |
-| `g` | signature | `sdbusplus::message::signature` |
-| `v` | variant | `std::variant<...>` |
-
-常见容器类型：
-
-| Signature | 含义 | 常见 C++ 类型示意 |
-| --- | --- | --- |
-| `as` | string 数组 | `std::vector<std::string>` |
-| `a{sv}` | `string → variant` 字典 | `std::map<std::string, std::variant<...>>` |
-| `a(ss)` | `(string, string)` 数组 | `std::vector<std::tuple<std::string, std::string>>` |
-
-### `append()` 和 `read()` 必须与 signature 对齐
-
-若 Method 的输入是 `su`，输出是 `b`：
-
-```cpp
-std::string name{"eth0"};
-uint32_t index = 0;
-request.append(name, index); // 对应 s + u
-
-auto reply = bus.call(request);
-bool success{};
-reply.read(success);         // 对应 b
-```
-
-最常见错误不是“D-Bus 很难”，而是参数顺序、C++ 整数宽度或 `variant` 候选类型与实际 signature 不匹配。不要猜类型；从 introspection 和 YAML 定义确认。
-
-### 为什么 `a{sv}` 在 OpenBMC 如此常见
-
-`a{sv}` 表示一个属性字典：键是属性名，值是可承载多种类型的 `variant`。`GetAll`、ObjectMapper 返回值、接口配置常使用它。
-
-```cpp
-using PropertyValue = std::variant<std::string, bool, uint32_t, int64_t>;
-using Properties = std::map<std::string, PropertyValue>;
-```
-
-实际业务使用的 `variant` 候选集应该尽量精确，且需要覆盖对端真实属性类型。随后用 `std::get_if<T>` 安全提取：
-
-```cpp
-if (const auto* mac = std::get_if<std::string>(&properties.at("MACAddress")))
-{
-    std::cout << *mac << '\n';
-}
-```
-
-## 7. Property：Get、GetAll、Set
-
-Property 不是“直接访问远端成员变量”；它通过标准接口 `org.freedesktop.DBus.Properties` 暴露。对任何具体业务接口的属性操作，本质上都调用这个标准接口的 Method。
-
 ### Get：读取一个属性
 
 ```cpp
@@ -354,7 +290,67 @@ bus.call(request);
 - 当前调用者的 D-Bus policy / 权限是否允许；
 - 这个状态是否应使用 Method 表达。例如“重置系统”不应伪装成 `Reset=true` 的 Property。
 
-## 8. 异步调用与执行时序
+## 6. 参数、返回值与 D-Bus signature
+
+D-Bus 通过 signature 描述 message 的序列化类型。它相当于跨进程 API 的类型契约；`busctl introspect` 输出的 `in`、`out` 列就是可靠来源。
+
+常见基本类型：
+
+| Signature | 含义 | 常见 C++ 类型 |
+| --- | --- | --- |
+| `s` | string | `std::string` |
+| `b` | boolean | `bool` |
+| `i` / `u` | 32 位有符号 / 无符号整数 | `int32_t` / `uint32_t` |
+| `x` / `t` | 64 位有符号 / 无符号整数 | `int64_t` / `uint64_t` |
+| `d` | double | `double` |
+| `o` | object path | 通常读作 `sdbusplus::message::object_path` 或字符串（取决于接口定义） |
+| `g` | signature | `sdbusplus::message::signature` |
+| `v` | variant | `std::variant<...>` |
+
+常见容器类型：
+
+| Signature | 含义                    | 常见 C++ 类型示意                                         |
+| --------- | --------------------- | --------------------------------------------------- |
+| `as`      | string 数组             | `std::vector<std::string>`                          |
+| `a{sv}`   | `string → variant` 字典 | `std::map<std::string, std::variant<...>>`          |
+| `a(ss)`   | `(string, string)` 数组 | `std::vector<std::tuple<std::string, std::string>>` |
+
+### `append()` 和 `read()` 必须与 signature 对齐
+
+若 Method 的输入是 `su`，输出是 `b`：
+
+```cpp
+std::string name{"eth0"};
+uint32_t index = 0;
+request.append(name, index); // 对应 s + u
+
+auto reply = bus.call(request);
+bool success{};
+reply.read(success);         // 对应 b
+```
+
+最常见错误不是“D-Bus 很难”，而是参数顺序、C++ 整数宽度或 `variant` 候选类型与实际 signature 不匹配。不要猜类型；从 introspection 和 YAML 定义确认。
+
+### 为什么 `a{sv}` 在 OpenBMC 如此常见
+
+`a{sv}` 表示一个属性字典：键是属性名，值是可承载多种类型的 `variant`。`GetAll`、ObjectMapper 返回值、接口配置常使用它。
+
+```cpp
+using PropertyValue = std::variant<std::string, bool, uint32_t, int64_t>;
+using Properties = std::map<std::string, PropertyValue>;
+```
+
+实际业务使用的 `variant` 候选集应该尽量精确，且需要覆盖对端真实属性类型。随后用 `std::get_if<T>` 安全提取：
+
+```cpp
+if (const auto* mac = std::get_if<std::string>(&properties.at("MACAddress")))
+{
+    std::cout << *mac << '\n';
+}
+```
+
+
+## 7. 异步调用与执行时序
 
 OpenBMC 服务大多是事件驱动的。异步调用不会在发出请求后阻塞当前线程，而是在回复抵达时调度回调。
 
@@ -385,12 +381,6 @@ bus->async_method_call(
                              执行 callback
 ```
 
-以下代码的“B”通常会先打印：
-
-```cpp
-bus->async_method_call(callback, service, path, interface, method);
-std::cout << "B\n";
-```
 
 ### 必须建立的四个认知
 
@@ -412,7 +402,7 @@ use(result); // 太早
 
 正确做法是让“依赖结果的下一步”在 callback 中触发，或使用一个明确的异步组合机制。
 
-## 9. 多个异步调用的组合
+## 8. 多个异步调用的组合
 
 假设页面或业务逻辑需要 MAC、IP、链路状态都完成后再继续。不能把三个 `async_method_call()` 后面的下一行当作“全部完成”。
 
@@ -446,6 +436,7 @@ auto finishOne = [state](const boost::system::error_code& ec) {
     {
         state->failed = true;
     }
+    // must be atomic operator，or may be wrong
     if (--state->remaining != 0)
     {
         return;
@@ -470,7 +461,7 @@ auto finishOne = [state](const boost::system::error_code& ec) {
 - 支持协程的代码：用 `co_await` 表达顺序逻辑；
 - 需要取消、超时、扇入/扇出：使用项目已有的异步抽象，避免自制难以维护的框架。
 
-## 10. Boost.Asio 与事件循环
+## 9. Boost.Asio 与事件循环
 
 `sdbusplus::asio::connection` 将 D-Bus 文件描述符纳入 Boost.Asio 的 `io_context`。同一个事件循环可以处理 D-Bus 回复、定时器、socket、HTTP 等事件。
 
@@ -507,7 +498,7 @@ io_context
 
 异步程序的常见误区是“注册了 callback 却什么也没发生”。优先检查 `io.run()` 是否真的开始执行、`io_context` 是否被提前停止，以及连接和注册对象是否仍然存活。
 
-## 11. 编写 D-Bus Server
+## 10. 编写 D-Bus Server
 
 一个最小 Server 需要做四件事：
 
@@ -525,8 +516,10 @@ io_context
 
 int main()
 {
+    // 创建 asio 连接
     boost::asio::io_context io;
     auto bus = std::make_shared<sdbusplus::asio::connection>(io);
+    // 申请服务名
     bus->request_name("xyz.openbmc_project.Example");
 
     sdbusplus::asio::object_server server(bus);
@@ -544,8 +537,6 @@ int main()
 
 > 上述 `object_server` 适合理解模型、实现动态接口或轻量服务。OpenBMC 中公共、稳定的 D-Bus API 通常进一步由 YAML 定义并生成 server/client 代码，见第 15 章。
 
-## 12. Property、Method、Signal 的服务端实现
-
 ### 注册 Property
 
 ```cpp
@@ -554,8 +545,6 @@ iface->register_property("Status", status);
 ```
 
 可读写属性通常还要在 setter 中校验输入、更新内部状态，并决定是否接受。具体 `register_property` 的重载和 flags 取决于项目使用的 sdbusplus 版本；以代码库已有模式和生成接口为准。
-
-重要原则：**Property 的值应来自服务的真实状态，而不是仅为应付 D-Bus 保存一份脱节副本。** 状态变化后还应以规范的方式通知订阅者。
 
 ### 注册 Method
 
@@ -575,25 +564,124 @@ iface->register_method("Echo", [](const std::string& input) {
 
 ### Signal 与 `PropertiesChanged`
 
-普通 Signal 是 Server 广播的事件；Method 的调用者不等于 Signal 的接收者。多个 Client 可以订阅同一 Signal。
+服务端：属性改变时发 `PropertiesChanged`
 
-```text
-Server
-  └── Signal ──> Client A
-          └──> Client B
-          └──> Client C
+对于 `object_server` 的运行时属性，注册后直接 `set_property()` 即可。属性真实发生变化时，当前实现会自动发出标准的 `org.freedesktop.DBus.Properties.PropertiesChanged`，不用再手工调用 `signal_property()`。
+
 ```
+auto iface = server.add_interface(kPath, kIface);
 
-属性变化时，Client 通常关心标准的 `org.freedesktop.DBus.Properties.PropertiesChanged` 信号。使用 `object_server` 的运行时接口时，常见形式是更新属性后通知变更：
+// 注册阶段：在 initialize 前
+iface->register_property("Status", std::string{"Stopped"});
+iface->register_property("Progress", uint32_t{0});
+iface->initialize();
 
-```cpp
-// 具体 API 以当前 sdbusplus 版本为准。
+// 业务运行阶段：会自动发 PropertiesChanged
 iface->set_property("Status", std::string{"Running"});
+iface->set_property("Progress", uint32_t{42});
 ```
 
-若使用 generated server，应优先调用生成的 property setter；它通常同时完成状态更新和必要的 D-Bus 通知。不要为了“保险”手工重复发送变更信号，否则 Client 可能收到重复事件。
+不要这样重复通知：
 
-## 13. 错误处理与排查路径
+```
+iface->set_property("Status", std::string{"Running"});
+iface->signal_property("Status"); // 不要：可能造成重复 PropertiesChanged
+```
+
+`set_property` 对未变化的值默认不会再广播属性变化。运行时 `object_server` 的默认属性也带有 `emits_change` 标志。
+
+客户端：订阅 `PropertiesChanged`
+
+`PropertiesChanged` 的 D-Bus 签名是：`sa{sv}as`
+
+分别是：
+
+1. 发生变化的接口名；
+2. `属性名 -> 新值`；
+3. 已失效但未携带新值的属性名。
+
+```
+#include <boost/asio/io_context.hpp>
+#include <sdbusplus/asio/connection.hpp>
+#include <sdbusplus/bus/match.hpp>
+
+#include <cstdint>
+#include <iostream>
+#include <map>
+#include <string>
+#include <variant>
+#include <vector>
+
+constexpr char kPath[] = "/xyz/openbmc_project/demo";
+constexpr char kWatchedIface[] = "xyz.openbmc_project.Demo.Status";
+
+// 必须覆盖目标接口可能随信号携带的全部属性类型。
+// 实际项目中应按接口定义收窄或扩展。
+using DbusValue = std::variant<
+    bool,
+    int16_t, uint16_t,
+    int32_t, uint32_t,
+    int64_t, uint64_t,
+    double,
+    std::string>;
+
+using ChangedProperties = std::map<std::string, DbusValue>;
+
+int main()
+{
+    boost::asio::io_context io;
+    auto bus = std::make_shared<sdbusplus::asio::connection>(io);
+
+    // match 必须长期存活；若在局部临时对象中创建，会立刻取消订阅。
+    sdbusplus::bus::match_t propertiesChangedMatch(
+        *bus,
+        sdbusplus::bus::match::rules::propertiesChanged(
+            kPath, kWatchedIface),
+        [](sdbusplus::message_t& msg) {
+            std::string changedInterface;
+            ChangedProperties changed;
+            std::vector<std::string> invalidated;
+
+            msg.read(changedInterface, changed, invalidated);
+
+            // 只处理 Status
+            auto iter = changed.find("Status");
+            if (iter != changed.end())
+            {
+                if (const auto* status =
+                        std::get_if<std::string>(&iter->second))
+                {
+                    std::cout << "Status changed: "
+                              << *status << '\n';
+                }
+            }
+
+            // invalidated 中的属性没有携带值，应通过 Properties.Get / GetAll 重新读取。
+            for (const auto& property : invalidated)
+            {
+                std::cout << "Property invalidated: "
+                          << property << '\n';
+            }
+        });
+
+    io.run();
+}
+```
+
+`propertiesChanged(kPath, kWatchedIface)` 已限定：
+
+```
+type=signal
+path=/xyz/openbmc_project/demo
+interface=org.freedesktop.DBus.Properties
+member=PropertiesChanged
+arg0=xyz.openbmc_project.Demo.Status
+```
+
+因此不会收到其他对象路径、其他接口的属性变化。
+
+
+## 11. 错误处理与排查路径
 
 同步风格通常捕获 `sdbusplus::exception::exception`；异步风格在 callback 的 `boost::system::error_code` 中检查失败。无论风格如何，日志应该包含目标四元组：**Service、Path、Interface、Method/Property**，以及错误文本。
 
@@ -609,22 +697,6 @@ iface->set_property("Status", std::string{"Running"});
 | `AccessDenied` | D-Bus policy 或调用者权限不足 | policy、服务日志、调用身份 |
 | timeout / 无回复 | 对端卡住、事件循环没跑、依赖链阻塞 | `busctl monitor`、服务日志、systemd 状态 |
 
-固定排查顺序可以避免在 C++ 代码中盲猜：
-
-```text
-Service 是否存在
-  ↓
-Object Path 是否存在
-  ↓
-Interface 是否存在
-  ↓
-Method / Property 名称是否存在
-  ↓
-参数、返回值 signature 是否一致
-  ↓
-权限、状态、依赖服务是否满足
-```
-
 ### 一个高效的现场诊断流程
 
 ```bash
@@ -639,7 +711,7 @@ journalctl -u 对应服务名
 
 先在命令行验证对象模型，再对照源码中的常量、`async_method_call` 参数及 C++ 类型。这样可把“D-Bus 不通”的问题迅速收敛为命名、类型、生命周期或权限问题。
 
-## 14. ObjectMapper 与动态服务发现
+## 12. ObjectMapper 与动态服务发现
 
 OpenBMC 常把对象的“服务归属”交给 ObjectMapper 查询，而不是在 Client 中硬编码 Service 名。原因是同一个接口或对象路径可能由不同实现、不同配置或不同平台服务提供；硬编码会让模块耦合过紧。
 
@@ -672,86 +744,9 @@ xyz.openbmc_project.ObjectMapper
 
 `GetObject` 返回值通常类似 `a{sas}`：服务名映射到接口名数组。实际的 C++ 类型形状会是嵌套 `map<string, vector<string>>` 一类容器；请以该接口 YAML/`busctl introspect` 为准。
 
-一个常见错误是将 ObjectMapper 当作业务数据服务。它回答的是“哪个服务实现了哪个对象/接口”，不是“该对象的属性值是什么”。找到服务后，还要向真正的业务 Service 调用 Properties 或业务 Method。
 
-## 15. YAML 与 sdbusplus 代码生成
 
-大量 OpenBMC D-Bus 接口并非手写 C++ 字符串定义，而是先用 YAML 描述 API，再由 sdbusplus 的生成工具产出 C++ 代码和文档。
-
-```text
-Interface YAML
-     ↓
-sdbusplus code generation
-     ↓
-generated server / client / enum / exception header
-     ↓
-业务服务继承或组合 generated server
-```
-
-YAML 作为 API 合约通常描述：
-
-- Interface 名称与描述；
-- Property 的类型、访问权限、默认值；
-- Method 的输入、输出与错误；
-- Signal 参数；
-- enum；
-- exception / error。
-
-生成代码的意义不仅是减少样板代码，更重要的是让服务端、客户端、D-Bus introspection 与类型定义来自同一份契约。源码中看到类似下面的命名空间时，应优先想到“这是生成接口的一部分”：
-
-```cpp
-xyz::openbmc_project::Example::server::Control
-```
-
-### 动态接口与生成接口如何取舍
-
-| 需求 | 通常更合适的做法 |
-| --- | --- |
-| 临时工具、实验、小型动态对象 | `asio::object_server` / `dbus_interface` |
-| 产品中稳定、跨服务使用的公开 API | YAML + generated server/client |
-| 只需要调用已存在接口 | 使用对应 generated client 或直接 sdbusplus Client 调用 |
-
-不要直接编辑生成文件。应修改源 YAML 或业务实现，再按照项目的构建/生成流程更新产物。
-
-## 16. 从 D-Bus 追踪回 OpenBMC 源码
-
-阅读 OpenBMC 代码时，建议从运行时事实反向定位，而不是从大量仓库中盲搜。
-
-```text
-busctl introspect
-       ↓
-Service / Object Path / Interface / Property 或 Method
-       ↓
-systemctl status（确认实际进程与 unit）
-       ↓
-仓库中搜索 Service 名、对象路径、Interface 名或 YAML 名
-       ↓
-找到 request_name / add_interface / generated server 继承点
-       ↓
-沿 property setter、method handler、signal 追踪业务逻辑
-```
-
-### 推荐的搜索顺序
-
-1. 搜 Interface 全名（例如 `xyz.openbmc_project.*`）。这常能找到 YAML、生成依赖或实现。
-2. 搜 Object path 前缀（例如 `/xyz/openbmc_project/...`）。这有助于找到对象构造处。
-3. 搜 Service 名和 `request_name`。这有助于锁定拥有者。
-4. 搜 Property / Method 名。在结果过多时结合类名、模块目录、Interface 名缩小范围。
-5. 如果服务名不是固定的，先查看 ObjectMapper 相关调用和配置。
-
-### 三条真实业务链应如何理解
-
-```text
-Sensor：硬件/驱动数据 → D-Bus Value Property → Redfish / IPMI / Web
-
-Network：配置或网络事件 → network service 的对象和属性 → bmcweb / CLI
-
-State：状态请求 → xyz.openbmc_project.State.* Method/Property → systemd 或状态机动作
-```
-
-实体管理相关对象常有动态特征：配置出现、硬件被发现或平台描述变化时，Object/Interface 可能新增、移除、属性更新。因此 Client 不应只在启动时查询一次就永远假设对象存在。
-
-## 17. 信号、生命周期与并发安全
+## 13. 信号、生命周期与并发安全
 
 ### 订阅信号
 
@@ -818,61 +813,4 @@ bus->async_method_call([weakSelf](auto ec, const auto& reply) {
 - 对变化去抖或节流；
 - 在日志中避免对每次正常状态变化输出高等级信息。
 
-## 18. 练习路线与速查表
 
-### 建议按这个顺序练习
-
-1. 在目标 BMC 上用 `busctl list`、`tree`、`introspect` 找一个你关心的对象。
-2. 用 `get-property` 读取一个 Property，并写下 Service/Path/Interface/Property 四元组。
-3. 根据 introspection 的 signature，写一个同步 `Get` 或业务 Method Client。
-4. 将它改为 `async_method_call()`，观察 `io.run()` 前后回调的区别。
-5. 用 `object_server` 写一个有一个 Property 和一个 Echo Method 的小服务，用 `busctl` 验证它。
-6. 订阅或监控一次 `PropertiesChanged`，让服务端修改属性并观察 Client。
-7. 对一个真实对象使用 ObjectMapper 发现 Service，再读取属性。
-8. 从该对象的 Interface 名反查 YAML、生成类与业务 handler。
-
-### 最小检查清单
-
-当你拿到一个 D-Bus 需求时，先填完下面这张卡片：
-
-```text
-目标：读取 / 写入 / 执行 / 订阅什么？
-Service：
-Object path：
-业务 Interface：
-成员名（Property / Method / Signal）：
-输入 signature：
-输出 signature：
-是否需要 ObjectMapper：
-同步还是异步：
-失败、服务重启、对象消失时怎么办：
-如何用 busctl 验证：
-```
-
-### API 速查
-
-| 任务        | 关键词 / API                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------ |
-| 查看系统对象    | `busctl list/tree/introspect/monitor`                                                      |
-| 同步 Client | `new_default()`、`new_method_call()`、`append()`、`call()`、`read()`                           |
-| 异步 Client | `sdbusplus::asio::connection`、`async_method_call()`、`io_context.run()`                     |
-| 单个属性      | `org.freedesktop.DBus.Properties.Get`                                                      |
-| 所有属性      | `org.freedesktop.DBus.Properties.GetAll`                                                   |
-| 写属性       | `org.freedesktop.DBus.Properties.Set`                                                      |
-| 动态 Server | `object_server`、`add_interface()`、`register_property()`、`register_method()`、`initialize()` |
-| 服务发现      | `xyz.openbmc_project.ObjectMapper`、`GetObject`、`GetSubTree`                                |
-| 稳定接口定义    | YAML、sdbusplus code generation                                                             |
-
-## 结语：把每次 D-Bus 交互还原成四元组
-
-初学者最容易把 sdbusplus 看成一串复杂模板和回调。实际上，绝大部分问题都能还原成：
-
-```text
-谁（Service）
-在什么对象上（Object Path）
-通过哪个契约（Interface）
-操作或观察什么成员（Property / Method / Signal）
-并使用什么类型（Signature）
-```
-
-先用 `busctl` 验证这套事实，再用 sdbusplus 让 C++ 表达同一件事；当服务归属不固定时，用 ObjectMapper；当代码复杂时，把异步、生命周期与重启当作正常运行条件来设计。掌握这条路径后，阅读 `entity-manager`、网络服务、传感器服务和状态管理模块时，就能从一个总线对象稳定地追到实现代码。
