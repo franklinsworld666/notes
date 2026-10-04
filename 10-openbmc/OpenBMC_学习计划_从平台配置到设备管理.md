@@ -59,23 +59,17 @@ Redfish / IPMI / SNMP / Web UI
 - 选一个你已经完成的功能，从启动服务开始追到 Redfish/SNMP 响应。
 - 阅读：OpenBMC [接口概览](https://github.com/openbmc/docs/blob/master/architecture/interface-overview.md)、[Object Mapper 架构](https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md)、`phosphor-dbus-interfaces` 中你用到的 YAML。
 - C++：复习 RAII、`std::variant`、智能指针、lambda、`std::optional`、异常边界；用一个小练习把 D-Bus variant 安全地转换为结构化输出。
-- Python：复习 `argparse`、`subprocess`、JSON、异常处理；写一个只读诊断脚本，输出指定 D-Bus object 的接口与属性快照。
+- JSON
 
 **验收：** 
 + 能在 10 分钟内说明“某个 Redfish 属性从哪个 D-Bus property 来、哪个服务维护、硬件值如何进来”，以 smbios 为例
 + 完成 systemd/ systemctl/journalctl 笔记
-+ 了解 sdbusplus 主要接口使用方法
-+ 学习 cpp : lambda 智能指针
++ 完成 sdbusplus 主要接口使用方法
++ 完成 smbios 笔记
++ 完成 fru 笔记
++ 学习 cpp : 
++ 学习 nolho::json
 
-
-### 第 2 周：systemd、日志和可重复调试
-
-- 阅读当前产品中相关 recipe、service 文件及 `obmc-phosphor-systemd.bbclass` 的使用方式；理解安装、启用、依赖、重启策略。
-- 练习使用 `systemctl`、`journalctl`、`busctl`、`dbus-monitor`（或系统现有替代工具）定位一次“配置已加但对象未出现”。
-- 阅读官方 [开发速查](https://github.com/openbmc/docs/blob/master/cheatsheet.md) 和 [Yocto 开发文档](https://github.com/openbmc/docs/blob/master/yocto-development.md)。
-- 建立一份“新增设备排障顺序”：内核设备 → sysfs/协议读数 → 服务日志 → D-Bus → Association → Redfish/IPMI/SNMP。
-
-**验收：** 对任一失败的配置，能区分是 recipe/服务未启动、Probe 不匹配、`Exposes` 字段不合法、底层设备不可读，还是消费者没做映射。
 
 ### 第 3–4 周：Entity Manager、FRU 与 Inventory
 
@@ -83,6 +77,7 @@ Redfish / IPMI / SNMP / Web UI
 - 以风扇配置为样例，追踪 `Probe`、`Name`、`Type`、`Exposes` 从 JSON 到 D-Bus configuration object，再到消费者 daemon 的完整路径。
 - 阅读 `phosphor-inventory-manager`、`phosphor-fru-device` 和相关 `phosphor-dbus-interfaces/Inventory` YAML；明确 FRU 原始数据、Inventory object、Asset 属性三者的边界。
 - 实践：为一个**可识别的电源或 GPU**先只建立 Inventory/Asset/Presence 设计，不急于把所有传感器一次配齐。
+- Python：复习 `argparse`、`subprocess`、JSON、异常处理；写一个只读诊断脚本，输出指定 D-Bus object 的接口与属性快照。
 
 **验收：** 可以回答“新增字段应放在 FRU、Entity Manager configuration、Inventory Decorator.Asset，还是 bmcweb OEM 属性”，并给出理由。
 
