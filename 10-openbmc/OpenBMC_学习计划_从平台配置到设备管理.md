@@ -67,7 +67,7 @@ Redfish / IPMI / SNMP / Web UI
 + 完成 sdbusplus 主要接口使用方法
 + 完成 smbios 笔记
 + 完成 fru 笔记
-+ 学习 cpp : 
++ 完成 cpp : 
 + 学习 nolho::json
 
 
