@@ -21,7 +21,7 @@
 |   5 | Board Layer          | `meta-<vendor> / meta-<board>`              | 提供具体服务器平台的设备树、配置、服务和平台策略                             | **高级**    |     |
 |   6 | systemd Integration  | `obmc-phosphor-systemd.bbclass`             | 把 recipe 与 systemd service、target、socket 等启动机制连接起来   | **中级→高级** |     |
 |   7 | systemd              | `Linux systemd`                             | 负责服务生命周期、启动依赖、target、timer 和日志                       | **初级**    | 完成  |
-|   8 | D-Bus                | `Linux dbus`                                | 提供 OpenBMC 核心进程间通信机制                                 | **中级**    |     |
+|   8 | D-Bus                | `Linux dbus`                                | 提供 OpenBMC 核心进程间通信机制                                 | **中级**    | 完成  |
 |   9 | sdbusplus            | `sdbusplus`                                 | 为 C++ 程序提供 D-Bus 方法、属性、信号等封装                         | **中级**    | 完成  |
 |  10 | sdeventplus          | `sdeventplus`                               | 将事件循环与 C++ 异步程序结合                                    | **中级→高级** |     |
 |  11 | D-Bus Interfaces     | `phosphor-dbus-interfaces`                  | 定义跨服务共享的标准 D-Bus API                                 | **中级**    |     |
@@ -49,7 +49,7 @@
 |   # | 功能模块                   | 主要源码模块/项目                            | 功能一句话简介                               | 能力等级      | 状态  |
 | --: | ---------------------- | ------------------------------------ | ------------------------------------- | --------- | --- |
 |   1 | Entity Manager         | `entity-manager`                     | 根据 JSON Probe/配置动态发现并创建平台实体及 D-Bus 对象 | **中级→高级** |     |
-|   2 | FRU Device             | `phosphor-fru-device`                | 从 FRU EEPROM 读取资产数据并转换为 D-Bus 信息      | **中级**    |     |
+|   2 | FRU Device             | `phosphor-fru-device`                | 从 FRU EEPROM 读取资产数据并转换为 D-Bus 信息      | **中级**    | 完成  |
 |   3 | IPMI FRU               | `phosphor-ipmi-fru`                  | 实现 FRU 数据解析、构造和访问                     | **中级→高级** | 完成  |
 |   5 | Inventory Manager      | `phosphor-inventory-manager`         | 管理硬件 Inventory 对象及生命周期                | **中级**    |     |
 |   6 | SMBIOS                 | `smbios-mdr`                         | 获取 Host SMBIOS 并提供平台信息                | **中级→高级** | 完成  |
@@ -107,21 +107,21 @@
 |   7 | Crash Dump      | `platform-specific / kernel`        | 收集 Kernel 或 Host 异常后的诊断信息 | **高级**    |     |
 ## 九、Network / Time / SNMP / LDAP
 
-| # | 功能模块 | 主要源码模块/项目 | 功能一句话简介 | 能力等级 |
-|---:|---|---|---|---|
-| 1 | Network Manager | `phosphor-networkd` | 通过 D-Bus 管理 BMC 网络配置 | **中级** |
-| 2 | Ethernet | `phosphor-networkd / Linux` | 管理网卡、MAC 和链路 | **中级** |
-| 3 | IPv4 | `phosphor-networkd / Linux` | 管理 IPv4 地址和路由 | **中级** |
-| 4 | IPv6 | `phosphor-networkd / Linux` | 管理 IPv6 地址、RA 和路由 | **高级** |
-| 5 | DHCP | `systemd-networkd / platform` | 为 BMC 获取动态网络配置 | **中级** |
-| 6 | VLAN | `phosphor-networkd / Linux` | 管理 BMC VLAN interface | **中级→高级** |
-| 7 | Routing | `Linux networking` | 管理多网络环境下的路由 | **高级** |
-| 8 | DNS | `systemd/network stack` | 管理域名解析配置 | **中级** |
-| 9 | NTP | `phosphor-time-manager` | 管理 BMC 时间同步策略和 NTP | **中级** |
-| 10 | RTC | `Linux RTC / time manager` | 管理硬件时钟与系统时间关系 | **中级** |
-| 11 | SNMP | `phosphor-snmp` | 提供 SNMP 管理和 Trap | **中级** |
-| 12 | LDAP | `phosphor-ldap` | 把企业 LDAP 接入 BMC 认证 | **高级** |
-| 13 | mDNS | `Avahi / platform` | 提供局域网服务发现 | **中级** |
+|   # | 功能模块            | 主要源码模块/项目                     | 功能一句话简介               | 能力等级      | 状态  |
+| --: | --------------- | ----------------------------- | --------------------- | --------- | --- |
+|   1 | Network Manager | `phosphor-networkd`           | 通过 D-Bus 管理 BMC 网络配置  | **中级**    |     |
+|   2 | Ethernet        | `phosphor-networkd / Linux`   | 管理网卡、MAC 和链路          | **中级**    |     |
+|   3 | IPv4            | `phosphor-networkd / Linux`   | 管理 IPv4 地址和路由         | **中级**    |     |
+|   4 | IPv6            | `phosphor-networkd / Linux`   | 管理 IPv6 地址、RA 和路由     | **高级**    |     |
+|   5 | DHCP            | `systemd-networkd / platform` | 为 BMC 获取动态网络配置        | **中级**    |     |
+|   6 | VLAN            | `phosphor-networkd / Linux`   | 管理 BMC VLAN interface | **中级→高级** |     |
+|   7 | Routing         | `Linux networking`            | 管理多网络环境下的路由           | **高级**    |     |
+|   8 | DNS             | `systemd/network stack`       | 管理域名解析配置              | **中级**    |     |
+|   9 | NTP             | `phosphor-time-manager`       | 管理 BMC 时间同步策略和 NTP    | **中级**    |     |
+|  10 | RTC             | `Linux RTC / time manager`    | 管理硬件时钟与系统时间关系         | **中级**    |     |
+|  11 | SNMP            | `phosphor-snmp`               | 提供 SNMP 管理和 Trap      | **中级**    | 部分  |
+|  12 | LDAP            | `phosphor-ldap`               | 把企业 LDAP 接入 BMC 认证    | **高级**    |     |
+|  13 | mDNS            | `Avahi / platform`            | 提供局域网服务发现             | **中级**    |     |
 ## 十、IPMI
 
 |   # | 功能模块          | 主要源码模块/项目                                | 功能一句话简介                        | 能力等级      | 状态  |
@@ -288,7 +288,7 @@
 
 如果这些问题能够独立解决，你的能力就已经明显超过“会修改某一个 OpenBMC 模块”的工程师。
 
-## 当前水平
+## 从信息来源划分
 
 ### 服务器/BMC 厂商信息
 
@@ -301,6 +301,7 @@
 ### Bios 提供的硬件信息
 
 + 信息源：smbios
-+ 如何解析 smbios 表，开发了 python 解析脚本
-+ 
++ BMC 如何接收到 什么 BIOS：待定
++ 如何解析 smbios 表，阅读了 smbios 标准
++ 开发了 python 解析脚本
 

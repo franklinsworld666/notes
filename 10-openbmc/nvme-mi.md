@@ -80,8 +80,8 @@ NVMe-MI、MCTP、SMBus 和 PCIe 不在同一个抽象层级。把它们全称作
 
 | 名称 | 核心问题 | 类比 |
 |---|---|---|
-| NVMe-MI | “我要对 SSD 做什么管理操作？” | 信的内容 |
-| MCTP | “管理消息怎样寻址、分段、送到终点？” | 快递网络 |
+| NVMe-MI | “我要对 SSD 做什么管理操作？” | 应用层协议 |
+| MCTP | “管理消息怎样寻址、分段、送到终点？” | 传输协议 |
 | SMBus/I2C | “字节怎样在管理线缆上传？” | 具体道路 |
 | PCIe VDM | “管理消息怎样借 PCIe 链路传？” | 另一种道路 |
 
@@ -91,13 +91,13 @@ NVMe-MI、MCTP、SMBus 和 PCIe 不在同一个抽象层级。把它们全称作
 
 ```text
 ┌────────────────────────────────────────┐
-│ NVMe-MI：例如“读取控制器健康状态”       │
+│ NVMe-MI：例如“读取控制器健康状态”           │
 ├────────────────────────────────────────┤
-│ MCTP：EID、消息类型、分段、完整性        │
+│ MCTP：EID、消息类型、分段、完整性           │
 ├────────────────────────────────────────┤
 │ MCTP over SMBus binding：SMBus 上如何装帧│
 ├────────────────────────────────────────┤
-│ SMBus / I2C：SCL、SDA、设备地址、交易    │
+│ SMBus / I2C：SCL、SDA、设备地址、交易      │
 └────────────────────────────────────────┘
 ```
 
@@ -149,18 +149,7 @@ NVMe-MI ─────────── 管理消息与管理命令；可封�
 
 NVMe-MI 可以在适用时把某些 NVMe Admin Command 作为“隧道中的载荷”带外送到设备。这不意味着所有 Admin Command 在带外都可用；是否允许取决于规范与设备实现。
 
-### 3.3 两条路径读取信息的比较
 
-```text
-带内（主机）
-Host OS → PCIe NVMe Queue → Get Log Page → SSD
-
-带外（BMC）
-BMC → NVMe-MI → MCTP → SMBus/PCIe VDM → SSD
-    → 可能请求管理信息，或经 MI 传递适用的 Admin Command
-```
-
-二者面对的是同一块 SSD，但身份、通道、可用命令和前置条件可能不同。
 
 ---
 
@@ -175,7 +164,7 @@ BMC → NVMe-MI → MCTP → SMBus/PCIe VDM → SSD
 BMC → SMBus Block Read / Write → SSD
 
 路径 B：NVMe-MI
-BMC → MCTP → NVMe-MI → SSD
+BMC → NVMe-MI → MCTP → NVMe-MI → SSD
 ```
 
 路径 A 更短；路径 B 是更通用、可扩展的管理体系。两者不是“新旧版本的一对一替代”，也不是所有 SSD 都同时实现。
@@ -205,14 +194,13 @@ NVMe-MI + MCTP 提供了更系统化的能力：
 ### 4.4 实际设计时应问的三个问题
 
 1. SSD 的数据手册明确支持哪一种带外接口？
-2. 板级连线把 SSD 的 SMBus/管理引脚接到哪里？是否经过 MUX？
 3. 你需要的只是固定的温度字段，还是完整的标准化管理能力？
 
 不要因为在某个软件组件中看到 `0x6a`，就假设某块 M.2 SSD 一定支持 Basic Management Command；也不要因为 SSD 是 NVMe，就假定它一定暴露了 MCTP/NVMe-MI 端点。
 
 ---
 
-## 5. MCTP 基础：Endpoint、EID、Network ID、Message Type
+## 5. MCTP 基础
 
 MCTP（Management Component Transport Protocol）可以理解为管理消息的“小型网络层”。它不关心“温度的数值是什么”，而关心“消息怎样到达正确的管理端点”。
 

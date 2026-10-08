@@ -54,7 +54,7 @@ Redfish / IPMI / SNMP / Web UI
 
 ## 4. 分周执行计划
 
-### 第 1 周：把已有成果画成系统图
+### 第 1 周：把已有成果画成系统图  --- 完成
 
 - 选一个你已经完成的功能，从启动服务开始追到 Redfish/SNMP 响应。
 - 阅读：OpenBMC [接口概览](https://github.com/openbmc/docs/blob/master/architecture/interface-overview.md)、[Object Mapper 架构](https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md)、`phosphor-dbus-interfaces` 中你用到的 YAML。
@@ -68,7 +68,7 @@ Redfish / IPMI / SNMP / Web UI
 + 完成 smbios 笔记
 + 完成 fru 笔记
 + 完成 cpp : 
-+ 学习 nolho::json
++ 完成 nolho::json
 
 
 ### 第 3–4 周：Entity Manager、FRU 与 Inventory
